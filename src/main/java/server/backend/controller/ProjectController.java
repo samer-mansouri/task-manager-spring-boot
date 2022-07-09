@@ -1,6 +1,7 @@
 package server.backend.controller;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -10,10 +11,15 @@ import server.backend.entity.Project;
 import server.backend.filter.IAuthenticationFacade;
 import server.backend.filter.TokenAccessor;
 import server.backend.repository.IProjectRepo;
+import server.backend.repository.IUserRepo;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.security.Principal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 
@@ -28,12 +34,37 @@ public class ProjectController {
     @Autowired
     IAuthenticationFacade authenticationFacade;
 
+    @Autowired
+    IUserRepo userRepo;
+
+    private static final TokenAccessor tokenAccessor = new TokenAccessor();
+
     @PostMapping("/project")
-    public ResponseEntity<Project> save(@RequestBody Project project) {
+    public void save(HttpServletRequest request, HttpServletResponse response, @RequestHeader("Authorization") String token) throws IOException {
         try {
-            return new ResponseEntity<>(projectRepo.save(project), HttpStatus.CREATED);
+            Long chiefId = tokenAccessor.accessTokenId(token);
+            String name = request.getParameter("name");
+            String description = request.getParameter("description");
+            Project project = new Project(name, description);
+            try {
+                userRepo.findById(chiefId).ifPresent(project::setChief);
+            } catch (Exception e) {
+                new ResponseEntity<String>(e.getMessage(), HttpStatus.BAD_REQUEST);
+            }
+            projectRepo.save(project);
+            Map<String, String> map = new HashMap<>();
+            map.put("name", name);
+            map.put("description", description);
+            map.put("chiefId", chiefId.toString());
+            response.setStatus(HttpServletResponse.SC_OK);
+            response.setContentType("application/json");
+            new ObjectMapper().writeValue(response.getOutputStream(), map);
         } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            Map<String, String> map = new HashMap<>();
+            map.put("error", e.getMessage());
+            response.setContentType("application/json");
+            new ObjectMapper().writeValue(response.getOutputStream(), map);
         }
     }
 

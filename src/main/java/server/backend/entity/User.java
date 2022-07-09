@@ -10,6 +10,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import javax.persistence.*;
 
 import java.util.Date;
+import java.util.List;
 
 
 @Entity
@@ -41,6 +42,14 @@ public class User  {
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)
     private Role role;
+
+    @OneToMany(mappedBy = "chief")
+    private List<Project> projects;
+
+
+    @OneToMany(mappedBy = "member")
+    private List<Task> tasks;
+
 
 
 

@@ -1,5 +1,6 @@
 package server.backend.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -8,7 +9,11 @@ import server.backend.entity.Module;
 import server.backend.repository.IModuleRepo;
 import server.backend.repository.IProjectRepo;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -21,19 +26,31 @@ public class ModuleController {
     @Autowired
     IProjectRepo projectRepo;
 
-    @PostMapping("/module/{projectId}")
-    public ResponseEntity<Module> save(@PathVariable Long projectId, @RequestBody Module module) {
+    @PostMapping("/module")
+    public ResponseEntity<Module> save(HttpServletRequest request, HttpServletResponse response, @RequestHeader("Authorization") String token) {
         try {
 
-            System.out.println("module: " + module);
-            Module mod = projectRepo.findById(projectId)
-                    .map(project -> {
-                        module.setProject(project);
-                        return moduleRepo.save(module);
-                    }).orElseThrow(() -> new Exception("Project not found"));
+            String name = request.getParameter("name");
+            String description = request.getParameter("description");
+
+            Long projectId = Long.parseLong(request.getParameter("projectId"));
+
+            Module module = new Module(name, description);
+
+            try {
+                projectRepo.findById(projectId).ifPresent(module::setProject);
+            } catch (Exception e) {
+                Map<String, String> map = new HashMap<>();
+                map.put("error", e.getMessage());
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                response.setContentType("application/json");
+                new ObjectMapper().writeValue(response.getOutputStream(), map);
+            }
+
+            moduleRepo.save(module);
 
             return new ResponseEntity<>(
-                    mod
+                    module
                     , HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);

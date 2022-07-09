@@ -32,6 +32,12 @@ public class Task {
     @JsonIgnore
     private Module module;
 
+    @ManyToOne
+    @JoinColumn(name = "member_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @JsonIgnore
+    private User member;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private Date createdAt;
