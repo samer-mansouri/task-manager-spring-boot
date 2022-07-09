@@ -41,7 +41,7 @@ public class ProjectController {
     public ResponseEntity<String> getAllProjects(HttpServletRequest request) {
         try {
             //Long userId = new TokenAccessor().accessTokenId(token);
-            String email = (String) authenticationFacade.getAuthentication().getPrincipal();
+            String email =  authenticationFacade.getAuthentication().getName();
 
             List<Project> list = projectRepo.findAll();
             if(list.isEmpty() || list.size() == 0){

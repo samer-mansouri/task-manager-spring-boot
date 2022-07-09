@@ -12,5 +12,7 @@ public interface ITaskRepo extends JpaRepository<Task, Long> {
     List<Task> findByModuleId(Long moduleId);
     Long countByModuleId(Long moduleId);
 
+    long count();
+
 
 }

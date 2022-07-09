@@ -7,4 +7,6 @@ import server.backend.entity.Project;
 @Repository
 public interface IProjectRepo extends JpaRepository<Project, Long> {
 
+    long count();
+
 }

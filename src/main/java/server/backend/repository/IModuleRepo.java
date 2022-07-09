@@ -14,5 +14,5 @@ public interface IModuleRepo extends JpaRepository<Module, Long> {
 
     List<Module> findByProjectId(Long projectId);
     Long countByProjectId(Long projectId);
-
+    long count();
 }
