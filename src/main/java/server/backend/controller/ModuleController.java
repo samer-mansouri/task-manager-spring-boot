@@ -11,6 +11,9 @@ import server.backend.repository.IProjectRepo;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,22 +23,24 @@ import java.util.Optional;
 @RequestMapping("/api/v1")
 public class ModuleController {
 
-    @Autowired
+    @Autowired(required = true)
     IModuleRepo moduleRepo;
 
-    @Autowired
+    @Autowired(required = true)
     IProjectRepo projectRepo;
+
 
     @PostMapping("/module")
     public ResponseEntity<Module> save(HttpServletRequest request, HttpServletResponse response, @RequestHeader("Authorization") String token) {
         try {
 
-            String name = request.getParameter("name");
-            String description = request.getParameter("description");
+            String titre = request.getParameter("titre");
+            Date dateDebut = new SimpleDateFormat("yyyy-MM-dd").parse(request.getParameter("dateDebut"));
+            Date dateFin = new SimpleDateFormat("yyyy-MM-dd").parse(request.getParameter("dateFin"));
 
             Long projectId = Long.parseLong(request.getParameter("projectId"));
 
-            Module module = new Module(name, description);
+            Module module = new Module(titre, dateDebut, dateFin);
 
             try {
                 projectRepo.findById(projectId).ifPresent(module::setProject);

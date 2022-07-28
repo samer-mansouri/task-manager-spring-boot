@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 @Service @RequiredArgsConstructor @Transactional @Slf4j
-public class UserServiceImplt implements UserDetailsService {
+public class UserServiceImpl implements UserDetailsService {
 
     private final IUserRepo userRepo;
 

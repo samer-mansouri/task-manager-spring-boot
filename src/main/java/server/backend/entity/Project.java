@@ -25,8 +25,11 @@ public class Project {
     @Column(name = "id", nullable = false, updatable = false)
     private Long id;
 
-    private String name;
+    private String titre;
+    private Date dateDebut;
+    private Date dateFin;
     private String description;
+    private String etat;
 
     @OneToMany(mappedBy = "project")
     private List<Module> modules;
@@ -37,6 +40,9 @@ public class Project {
     @JsonIgnore
     private User chief;
 
+    @OneToMany(mappedBy = "project")
+    private List<Document> documents;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private Date createdAt;
@@ -45,10 +51,14 @@ public class Project {
     @Column(name = "updated_at")
     private Date updatedAt;
 
-    public Project(String name, String description) {
-        this.name = name;
+    public Project(String titre, Date dateDebut, Date dateFin, String description, String etat) {
+        this.titre = titre;
+        this.dateDebut = dateDebut;
+        this.dateFin = dateFin;
         this.description = description;
+        this.etat = etat;
     }
+
 
 
 }

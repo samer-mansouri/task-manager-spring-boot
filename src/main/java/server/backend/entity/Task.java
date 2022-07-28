@@ -23,8 +23,13 @@ public class Task {
     @Column(name = "id", nullable = false, updatable = false)
     private Long id;
 
-    private String name;
+    private String titre;
+    private Date dateDebut;
+    private Date dateEcheance;
     private String description;
+    private String statut;
+    private Integer priorite;
+    private Integer tauxAvancement;
 
     @ManyToOne
     @JoinColumn(name = "module_id", nullable = false)

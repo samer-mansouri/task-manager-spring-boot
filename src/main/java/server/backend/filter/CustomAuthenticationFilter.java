@@ -1,5 +1,6 @@
 package server.backend.filter;
 
+import server.backend.repository.IUserRepo;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,7 +13,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import server.backend.repository.IUserRepo;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -23,6 +25,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @Slf4j
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
 
@@ -30,15 +33,16 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
 
     private final IUserRepo userRepo;
     
-    public CustomAuthenticationFilter(AuthenticationManager authenticationManager, IUserRepo userRepo) {
+    public CustomAuthenticationFilter(AuthenticationManager authenticationManager, IUserRepo repo) {
         this.authenticationManager = authenticationManager;
-        this.userRepo = userRepo;
+        this.userRepo = repo;
     }
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
-        log.info("Attempting authentication " + request.getParameterNames());
+       
         String email = request.getParameter("email");
         String password = request.getParameter("password");
+        log.info("Attempting authentication with email: " + email + " and password: " + password);
         Collection<? extends GrantedAuthority> authorities = Collections.singleton(new SimpleGrantedAuthority(
                 userRepo.findByEmail(email).getRole().toString()
         ));
@@ -59,7 +63,7 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
         Algorithm algorithm = Algorithm.HMAC256("secret".getBytes(StandardCharsets.UTF_8));
         String access_token = JWT.create()
                 .withSubject(user.getUsername())
-                .withExpiresAt(new Date(System.currentTimeMillis() + 10*60*1000))
+                .withExpiresAt(new Date(System.currentTimeMillis() + 10*60*10000))
                 .withIssuer(request.getRequestURL().toString())
                 .withClaim("role", user.getAuthorities().iterator().next().getAuthority())
                 .withClaim("id", u.getId())
@@ -67,13 +71,16 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
 
         String refresh_token = JWT.create()
                 .withSubject(user.getUsername())
-                .withExpiresAt(new Date(System.currentTimeMillis() + 30*60*1000))
+                .withExpiresAt(new Date(System.currentTimeMillis() + 30*60*10000))
                 .withIssuer(request.getRequestURL().toString())
                 .sign(algorithm);
 
         Map<String, String> tokens = new HashMap<>();
         tokens.put("access_token", access_token);
         tokens.put("refresh_token", refresh_token);
+        tokens.put("role", u.getRole().toString());
+        tokens.put("id", u.getId().toString());
+        tokens.put("name", u.getFirstName() + " " + u.getLastName());
         response.setContentType("application/json");
         new ObjectMapper().writeValue(response.getOutputStream(), tokens);
     }

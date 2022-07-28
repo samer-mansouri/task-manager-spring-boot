@@ -24,9 +24,10 @@ public class Module {
     @Column(name = "id", nullable = false, updatable = false)
     private Long id;
 
-    private String name;
-    private String description;
-
+    private String titre;
+    private Date dateDebut;
+    private Date dateFin;
+    
     @OneToMany(mappedBy = "module")
     private List<Task> tasks;
 
@@ -48,10 +49,13 @@ public class Module {
     @Column(name = "updated_at")
     private Date updatedAt;
 
-
-    public Module (String name, String description) {
-        this.name = name;
-        this.description = description;
+    public Module(String titre, Date dateDebut, Date dateFin) {
+        this.titre = titre;
+        this.dateDebut = dateDebut;
+        this.dateFin = dateFin;
     }
+
+
+  
 
 }

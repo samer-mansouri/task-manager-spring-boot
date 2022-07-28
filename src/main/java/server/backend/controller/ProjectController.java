@@ -17,6 +17,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.security.Principal;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,19 +45,21 @@ public class ProjectController {
     public void save(HttpServletRequest request, HttpServletResponse response, @RequestHeader("Authorization") String token) throws IOException {
         try {
             Long chiefId = tokenAccessor.accessTokenId(token);
-            String name = request.getParameter("name");
+            String titre = request.getParameter("titre");
             String description = request.getParameter("description");
-            Project project = new Project(name, description);
+            String etat = request.getParameter("etat");
+            Date dateDebut = new SimpleDateFormat("yyyy-MM-dd").parse(request.getParameter("dateDebut"));
+            Date dateFin = new SimpleDateFormat("yyyy-MM-dd").parse(request.getParameter("dateFin"));
+
+            Project project = new Project(titre, dateDebut, dateFin, description, etat);
             try {
                 userRepo.findById(chiefId).ifPresent(project::setChief);
             } catch (Exception e) {
                 new ResponseEntity<String>(e.getMessage(), HttpStatus.BAD_REQUEST);
             }
-            projectRepo.save(project);
-            Map<String, String> map = new HashMap<>();
-            map.put("name", name);
-            map.put("description", description);
-            map.put("chiefId", chiefId.toString());
+            Project savedProject = projectRepo.save(project);
+            Map<String, Object> map = new HashMap<>();
+            map.put("project", savedProject);
             response.setStatus(HttpServletResponse.SC_OK);
             response.setContentType("application/json");
             new ObjectMapper().writeValue(response.getOutputStream(), map);
